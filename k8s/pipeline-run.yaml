@@ -2,14 +2,14 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: pfs-run-
+  generateName: metrics-app-pipeline-run-
 spec:
   pipelineRef:
-    name: pfs-pipeline
+    name: metrics-app-pipeline
   serviceAccountName: pipeline
   params:
     - name: source-repo
-      value: https://github.com/matejocovskyibm/matej-ocovsky-metrics-app
+      value: https://github.com/cloud-native-garage-method-cohort/matej-ocovsky-metrics-app
     - name: image-repo
       value: image-registry.openshift-image-registry.svc:5000/matej-ocovsky-metrics-app-pipeline/metrics-app
   workspaces:

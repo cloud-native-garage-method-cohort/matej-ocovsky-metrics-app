@@ -8,7 +8,7 @@ spec:
     - name: source-repo
       type: string
       description: Source repository name
-      default: https://github.com/matejocovskyibm/matej-ocovsky-metrics-app
+      default: https://github.com/cloud-native-garage-method-cohort/matej-ocovsky-metrics-app
     - name: image-repo
       type: string
       description: Docker image name
