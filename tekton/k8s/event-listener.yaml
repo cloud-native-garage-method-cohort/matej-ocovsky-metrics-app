@@ -1,0 +1,11 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: vcs-trigger-el
+spec:
+  serviceAccountName: pipeline
+  triggers:
+    - bindings:
+        - ref: vcs-trigger-binding
+      template:
+        name: vcs-trigger-template

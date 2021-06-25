@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: gitops
+spec:
+  params:
+    - name: gitops-repo
+      type: string
+  steps:
+    - args:
+        - >-
+          git clone -b main $(params.gitops-repo) gitops 
+
+          git config --global user.email "tekton@ibmcloud.com" 
+
+          git config --global user.name "Tekton Pipeline" 
+
+          cd gitops/
+
+          mkdir -p prod/matej-ocovsky-metrics-app/metrics-app/
+
+          cp ../k8s/manifests.yaml
+          prod/matej-ocovsky-metrics-app/metrics-app/
+
+          ls
+
+          ls ../
+
+          git add .
+
+          git commit -m "Updating image name" --allow-empty 
+
+          git push
+      command:
+        - /bin/bash
+        - "-c"
+      image: docker.io/csantanapr/helm-kubectl-curl-git-jq-yq
+      name: gitops-step
+      resources: {}
+      workingDir: $(workspaces.output.path)
+  workspaces:
+    - name: output

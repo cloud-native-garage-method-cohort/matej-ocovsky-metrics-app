@@ -1,0 +1,23 @@
+# pipeline-run.yaml
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: pfs-run-
+spec:
+  pipelineRef:
+    name: pfs-pipeline
+  serviceAccountName: pipeline
+  params:
+    - name: source-repo
+      value: https://github.com/matejocovskyibm/matej-ocovsky-metrics-app
+    - name: image-repo
+      value: image-registry.openshift-image-registry.svc:5000/matej-ocovsky-pipeline-from-scratch/node-app-pfs
+  workspaces:
+    - name: pfs-shared-data
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi

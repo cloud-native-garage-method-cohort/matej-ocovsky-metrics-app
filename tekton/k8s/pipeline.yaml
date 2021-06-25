@@ -1,0 +1,110 @@
+# pipeline.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: metrics-app-pipeline
+spec:
+  params:
+    - name: source-repo
+      type: string
+      description: Source repository name
+      default: https://github.com/matejocovskyibm/matej-ocovsky-metrics-app
+    - name: image-repo
+      type: string
+      description: Docker image name
+      default: image-registry.openshift-image-registry.svc:5000/matej-ocovsky-metrics-app-pipeline/metrics-app
+  workspaces:
+    - name: pfs-shared-data
+      description: |
+        This workspace stores the cloned repository and is available to all steps
+  tasks:
+    - name: clone-repository
+      params:
+        - name: url
+          value: "$(params.source-repo)"
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: pfs-shared-data
+    - name: install-dependencies
+      runAfter:
+        - clone-repository
+      taskRef:
+        name: npm
+      workspaces:
+        - name: source
+          workspace: pfs-shared-data
+      params:
+        - name: ARGS
+          value:
+            - clean-install
+    - name: run-tests
+      runAfter:
+        - install-dependencies
+      taskRef:
+        name: npm
+      workspaces:
+        - name: source
+          workspace: pfs-shared-data
+      params:
+        - name: ARGS
+          value:
+            - test
+    - name: build-image
+      runAfter:
+        - run-tests
+      params:
+        - name: IMAGE
+          value: "$(params.image-repo):$(tasks.clone-repository.results.commit)"
+        - name: TLSVERIFY
+          value: "false"
+      taskRef:
+        kind: ClusterTask
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: pfs-shared-data
+    - name: kustomize-build
+      runAfter:
+        - build-image
+      params:
+        - name: app-namespace
+          value: matej-ocovsky-pipeline-from-scratch
+        - name: app-name
+          value: metrics-app
+        - name: image-with-tag
+          value: "$(params.image-repo):$(tasks.clone-repository.results.commit)"
+      taskRef:
+        kind: Task
+        name: kustomize-build
+      workspaces:
+        - name: source
+          workspace: pfs-shared-data
+    - name: test-deploy
+      runAfter:
+        - kustomize-build
+      params:
+        - name: app-namespace
+          value: matej-ocovsky-pipeline-from-scratch
+        - name: app-name
+          value: metrics-app
+      taskRef:
+        kind: Task
+        name: test-deploy
+      workspaces:
+        - name: source
+          workspace: pfs-shared-data
+    - name: gitops
+      runAfter:
+        - test-deploy
+      taskRef:
+        kind: Task
+        name: gitops
+      params:
+        - name: gitops-repo
+          value: "https://github.com/matejocovskyibm/express-sample-app-gitops"
+      workspaces:
+        - name: output
+          workspace: pfs-shared-data

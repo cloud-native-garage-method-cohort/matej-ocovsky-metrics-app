@@ -1,0 +1,58 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: test-deploy
+spec:
+  params:
+    - description: namespace that deployment will be tested in
+      name: app-namespace
+      type: string
+    - description: the name of the app
+      name: app-name
+      type: string
+  results:
+    - description: ""
+      name: service-port
+    - description: ""
+      name: resource-type
+  steps:
+    - image: "quay.io/upslopeio/kubectl:latest"
+      name: deploy
+      resources: {}
+      script: >
+        #!/bin/sh
+
+        cd source
+
+        set -e
+
+        APP_NAMESPACE="$(params.app-namespace)"
+
+        echo -e "Deploying into: ${APP_NAMESPACE}"
+
+        kubectl apply -n ${APP_NAMESPACE} -f ./k8s/manifests.yaml
+        --validate=false > results.out
+
+        cat results.out
+    - image: "quay.io/upslopeio/kubectl:latest"
+      name: verify-deploy
+      resources: {}
+      script: |
+        #!/bin/sh
+        cd source
+        set -e
+        APP_NAMESPACE="$(params.app-namespace)"
+        APP_NAME="$(params.app-name)"
+        cat results.out | \
+          grep -E "deployment|statefulset|integrationserver|queuemanager" | \
+          sed "s/deployment.apps/deployment/g" | \
+          sed "s/statefulset.apps/statefulset/g" | \
+          sed "s/configured//g" | \
+          sed "s/created//g" | \
+          sed "s/unchanged//g" | while read target; do
+            echo "Waiting for rollout of ${target} in ${APP_NAMESPACE}"
+            kubectl rollout status -n ${APP_NAMESPACE} ${target}
+          done
+  workspaces:
+    - description: contains the cloned git repo
+      name: source
