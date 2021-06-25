@@ -71,7 +71,7 @@ spec:
         - build-image
       params:
         - name: app-namespace
-          value: matej-ocovsky-pipeline-from-scratch
+          value: matej-ocovsky-metrics-app-pipeline
         - name: app-name
           value: metrics-app
         - name: image-with-tag
@@ -87,7 +87,7 @@ spec:
         - kustomize-build
       params:
         - name: app-namespace
-          value: matej-ocovsky-pipeline-from-scratch
+          value: matej-ocovsky-metrics-app-pipeline
         - name: app-name
           value: metrics-app
       taskRef:
@@ -104,7 +104,7 @@ spec:
         name: gitops
       params:
         - name: gitops-repo
-          value: "https://github.com/matejocovskyibm/express-sample-app-gitops"
+          value: "https://github.com/cloud-native-garage-method-cohort/matej-ocovsky-metrics-app-gitops"
       workspaces:
         - name: output
           workspace: pfs-shared-data

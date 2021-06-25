@@ -11,7 +11,7 @@ spec:
     - name: source-repo
       value: https://github.com/matejocovskyibm/matej-ocovsky-metrics-app
     - name: image-repo
-      value: image-registry.openshift-image-registry.svc:5000/matej-ocovsky-pipeline-from-scratch/node-app-pfs
+      value: image-registry.openshift-image-registry.svc:5000/matej-ocovsky-metrics-app-pipeline/metrics-app
   workspaces:
     - name: pfs-shared-data
       volumeClaimTemplate:
